@@ -1,0 +1,36 @@
+version: '3'
+services:
+  web-service:
+    build: ./web-service
+    ports:
+      - "9701:9701"
+    depends_on:
+      - weather-service
+
+  weather-service:
+    build: ./weather-service
+    ports:
+      - "9702:9702"
+    depends_on:
+      - otel-collector
+
+  jaeger-all-in-one:
+    image: "jaegertracing/all-in-one"
+    environment:
+      MEMORY_MAX_TRACES: 50000
+    ports:
+      - "14250"
+      - "14268"
+      - "16686:16686"
+
+  otel-collector:  
+    image: otel/opentelemetry-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:  
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
+    depends_on:
+      - jaeger-all-in-one
+
