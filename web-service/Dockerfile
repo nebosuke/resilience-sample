@@ -12,13 +12,14 @@ FROM openjdk:17-jdk-slim
 ## ランタイムなのでパッケージは最新に更新しておく
 RUN set -x && \
     apt-get update && \
-    apt-get -y upgrade
+    apt-get -y upgrade && \
+    apt-get -y install curl
 
 ## ビルド結果を / にコピー
 COPY --from=0 /web-src/target/web-0.0.1-SNAPSHOT.jar /
 
-## OpenTelemetry の javaagent を / にコピー
-COPY otel/opentelemetry-javaagent-1.18.0.jar /
+## OpenTelemetry の javaagent をダウンロード
+RUN curl -L https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.18.0/opentelemetry-javaagent.jar > /opentelemetry-javaagent-1.18.0.jar
 
 ## javaagent を指定してサーバーを起動
 CMD java -javaagent:/opentelemetry-javaagent-1.18.0.jar \
